@@ -74,20 +74,31 @@ def main():
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
 
-    spreadsheetId = '1bzRVtuaeqiTIrNGNwomzRUmxYHhtUy18vp05Wfapmvk'
-    rangeName = 'Actual!A2:F'
+    spreadsheetId = '1yPn9AS9QhWyQprXWrI6LfdheKbH8tDbN3eHVk6MD1X0'
+
+    rangeName = 'Actual!A2:J'
     value_input_option='RAW'
     
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheetId, range=rangeName).execute()
-    values = result.get('values', [])
+    actual = result.get('values', [])
+    #print values
 
-    if not values:
+    rangeName = 'Config!A2:C'
+    value_input_option='RAW'
+    
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheetId, range=rangeName).execute()
+    config = result.get('values', [])
+    print config
+
+    if not actual:
         print('No data found.')
     else:
-        for row in values:
+        for row in actual:
             # Print columns A and E, which correspond to indices 0 and 4.
             q = nse.get_quote(str(row[0]))
+            
             '''
             print 'Symbol: ',q['symbol']
             print 'Company Name: ',q['companyName']
@@ -101,7 +112,7 @@ def main():
             print '% Change: ',q['pChange']
             print '52 wk high: ',q['high52']
             print '52 wk low: ',q['low52']
-                
+             
                 body = {
                 'values': values
                 }
@@ -109,6 +120,7 @@ def main():
                 result = service.spreadsheets().values().append(spreadsheetId=spreadsheetId,range=rangeName,valueInputOption=value_input_option,body=body).execute()
                 print result
             '''
+            
             if q['buyPrice1'] is None :
                 values = [
                 [
@@ -131,10 +143,11 @@ def main():
             if row[5] == 'Yes' :
                 client = Client(account_sid, auth_token)
 
-                call = client.calls.create(
-                to="+918149265866", 
+                call = client.calls.create(    
+                to=config[int(row[9])-1][2],
                 from_="+19722036935",
                 url="http://demo.twilio.com/docs/voice.xml")
+                #print config[int(row[9])-1][2]
                 values = [
                 [
                     'Notified!'
